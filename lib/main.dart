@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:test_app/pages/group.dart';
+import './api/groupAPI.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: '.env.dev');
   runApp(
     const MaterialApp(
       title: 'My app', // used by the OS task switcher
@@ -24,9 +27,16 @@ class _HomePageState extends State<MyHomePage> {
   int currentPageIndex = 0;
 
   int _selectedIndex = 0;
+  int totalNewUser = 1;
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+    });
+  }
+
+  void updateNewUser(int user) {
+    setState(() {
+      totalNewUser += user;
     });
   }
 
@@ -43,7 +53,7 @@ class _HomePageState extends State<MyHomePage> {
               children: <Widget>[
                 ListTile(
                   leading: TextButton(
-                    onPressed: null,
+                    onPressed: () => Navigator.pop(context),
                     child: const Text('Save'),
                   ),
                   title: Center(child: Text("My Title")),
@@ -65,7 +75,49 @@ class _HomePageState extends State<MyHomePage> {
                           hintText: 'Enter a group name',
                         ),
                       ),
+                      // new List.generate(totalNewUser, (index) => )
+                      Container(
+                        // color: Colors.blue,
+                        height: 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  labelText: 'User Name',
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter new user',
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 50,
+                              height: 50,
+                              child: IconButton(
+                                  onPressed: () {}, icon: Icon(Icons.add)),
+                            )
+
+                            // Container(width: 50, height: 50, color: Colors.red),
+                            // Container(
+                            //     width: 50, height: 50, color: Colors.green),
+                            // Container(
+                            //     width: 50, height: 50, color: Colors.yellow),
+                          ],
+                        ),
+                      ),
+                      // Other widgets...
                     ],
+                    // children: [
+                    //   Container(
+                    //     height: 100,
+                    //     child: Row(
+                    //       children: [
+
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ],
                   ),
                 ),
                 Spacer(),
@@ -162,11 +214,13 @@ class _HomePageState extends State<MyHomePage> {
             child: Column(children: [
               InkWell(
                   onTap: () => {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SecondRoute()),
-                        )
+                        test()
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //       builder: (context) =>
+                        //       const SecondRoute()),
+                        // )
                       },
                   child: const SizedBox(
                       width: double.maxFinite,
@@ -318,8 +372,6 @@ class _HomePageState extends State<MyHomePage> {
     );
   }
 }
-
-
 
 // class MyAppBar extends StatelessWidget {
 //   const MyAppBar({required this.title, super.key});
