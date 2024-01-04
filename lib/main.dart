@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,6 +26,21 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<MyHomePage> {
+  List<dynamic> groupSummary = [];
+  int totalPayable = 0;
+  int totalReceivable = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getUserGroupSummary("2").then((Map<String, dynamic> result) {
+      setState(() {
+        groupSummary = result["data"];
+        print(result);
+      });
+    });
+  }
+
   int currentPageIndex = 0;
 
   int _selectedIndex = 0;
@@ -176,7 +193,7 @@ class _HomePageState extends State<MyHomePage> {
             child: const Card(
                 color: Color.fromRGBO(165, 241, 183, 1),
                 child: Column(children: [
-                  Text('Hello World!'),
+                  Text('YOU'),
                   const Row(
                     children: [
                       const Spacer(),
@@ -206,75 +223,88 @@ class _HomePageState extends State<MyHomePage> {
         ]),
       ),
       Expanded(
-          child: ListView(children: <Widget>[
-        for (int i in text)
-          Container(
-            padding: EdgeInsets.all(15.0),
-            width: double.infinity,
-            child: Column(children: [
-              InkWell(
-                  onTap: () => {
-                        test()
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) =>
-                        //       const SecondRoute()),
-                        // )
-                      },
-                  child: const SizedBox(
-                      width: double.maxFinite,
-                      height: 120,
-                      child: const Card(
-                          color: Color.fromRGBO(243, 230, 216, 0.8),
-                          child: Column(children: [
-                            Padding(
-                              padding: EdgeInsets.only(top: 10),
-                              child: Text(
-                                'Group 1',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Color.fromRGBO(145, 127, 96, 1),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Row(
-                              children: [
-                                const Spacer(),
-                                Text(
-                                  "Total Payable",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  "Total Receivable",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                const Spacer()
-                              ],
-                            ),
-                            const Row(children: [
-                              const Spacer(),
-                              Align(
-                                alignment: Alignment.center,
-                                child: const Text("0",
-                                    style: TextStyle(fontSize: 30),
-                                    textAlign: TextAlign.right),
-                              ),
-                              const Spacer(),
-                              Align(
-                                alignment: Alignment.center,
-                                child: const Text("0",
-                                    style: TextStyle(fontSize: 30),
-                                    textAlign: TextAlign.right),
-                              ),
-                              const Spacer()
-                            ]),
-                          ]))))
-            ]),
-          )
-      ])),
+          child: ListView.builder(
+              itemCount: groupSummary.length,
+              itemBuilder: (context, index) {
+                final itemData = groupSummary[index];
+                return Container(
+                    padding: EdgeInsets.all(15.0),
+                    width: double.infinity,
+                    child: Column(children: [
+                      InkWell(
+                          onTap: () => {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const GroupDetailPage()),
+                                )
+                              },
+                          child: SizedBox(
+                              width: double.maxFinite,
+                              height: 120,
+                              child: Card(
+                                  color: Color.fromRGBO(243, 230, 216, 0.8),
+                                  child: Column(children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 10),
+                                      child: Text(
+                                        itemData["groupName"],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color:
+                                              Color.fromRGBO(145, 127, 96, 1),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const Row(
+                                      children: [
+                                        const Spacer(),
+                                        Text(
+                                          "Total Payable",
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          "Total Receivable",
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                        const Spacer()
+                                      ],
+                                    ),
+                                    Row(children: [
+                                      const Spacer(),
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child:
+                                            Text(itemData["payable"].toString(),
+                                                style: TextStyle(
+                                                  fontSize: 30,
+                                                  color: itemData["payable"] > 0
+                                                      ? Colors.red
+                                                      : Colors.black,
+                                                ),
+                                                textAlign: TextAlign.right),
+                                      ),
+                                      const Spacer(),
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                            itemData["receivable"].toString(),
+                                            style: TextStyle(
+                                              fontSize: 30,
+                                              color: itemData["receivable"] > 0
+                                                  ? Colors.green
+                                                  : Colors.black,
+                                            ),
+                                            textAlign: TextAlign.right),
+                                      ),
+                                      const Spacer()
+                                    ]),
+                                  ]))))
+                    ]));
+              })),
     ]));
   }
 
