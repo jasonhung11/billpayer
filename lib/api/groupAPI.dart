@@ -27,25 +27,24 @@ void test() async {
 Future<Map<String, dynamic>> getUserGroupSummary(String id) async {
   var client = HttpClient();
   String baseUrl = dotenv.env["API_URL"]!;
-  String userPath = dotenv.env["USER_API_PATH"]!;
+  String userAPIPath = dotenv.env["USER_API_PATH"]!;
   try {
-    Response response = await get(Uri.parse('$baseUrl/$userPath/$id/summary'));
+    Response response =
+        await get(Uri.parse('$baseUrl/$userAPIPath/$id/summary'));
+    print(jsonDecode(response.body));
     return jsonDecode(response.body) as Map<String, dynamic>;
   } finally {
     client.close();
   }
 }
+
+Future<Map<String, dynamic>> getGroupDetail(String groupId) async {
   var client = HttpClient();
-  String host = dotenv.env["API_URL"]!;
-  print("testing");
+  String baseUrl = dotenv.env["API_URL"]!;
+  String groupPath = dotenv.env["GROUP_API_PATH"]!;
   try {
-    HttpClientRequest request = await client.get(host, 8080, '/user/greeting');
-    // Optionally set up headers...
-    // Optionally write to the request object...
-    HttpClientResponse response = await request.close();
-    // Process the response
-    final stringData = await response.transform(utf8.decoder).join();
-    print(stringData);
+    Response response = await get(Uri.parse('$baseUrl/$groupPath/$groupId'));
+    return jsonDecode(response.body) as Map<String, dynamic>;
   } finally {
     client.close();
   }
