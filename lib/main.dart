@@ -1,13 +1,21 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:test_app/api/userAPI.dart';
+import 'package:test_app/firebase_options.dart';
 import 'package:test_app/pages/group.dart';
+import 'package:test_app/pages/home.dart';
+import 'package:test_app/pages/login.dart';
 import './api/groupAPI.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env.dev');
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
     const MaterialApp(
       title: 'My app', // used by the OS task switcher
@@ -85,7 +93,7 @@ class _HomePageState extends State<MyHomePage> {
                   padding: EdgeInsets.only(left: 20, right: 20),
                   child: Column(
                     children: [
-                      TextField(
+                      const TextField(
                         decoration: InputDecoration(
                           labelText: 'Group Name',
                           border: OutlineInputBorder(),
@@ -152,7 +160,8 @@ class _HomePageState extends State<MyHomePage> {
     List<int> text = [1, 2, 4, 5, 2, 1, 2];
 
     return Material(
-        child: Column(children: [
+        child: SafeArea(
+            child: Column(children: [
       Container(
         padding: EdgeInsets.only(left: 15, right: 15.0, top: 5),
         child: Row(
@@ -182,6 +191,12 @@ class _HomePageState extends State<MyHomePage> {
         ),
       ),
       const Align(alignment: Alignment.topRight, child: Text("Date: ")),
+      TextButton(
+        child: const Text("Logout"),
+        onPressed: () {
+          FirebaseAuth.instance.signOut();
+        },
+      ),
       Container(
         // color: Color.fromRGBO(192, 181, 127, 1),
         padding: EdgeInsets.all(15.0),
@@ -227,6 +242,7 @@ class _HomePageState extends State<MyHomePage> {
               itemCount: groupSummary.length,
               itemBuilder: (context, index) {
                 final itemData = groupSummary[index];
+                print(itemData);
                 return Container(
                     padding: EdgeInsets.all(15.0),
                     width: double.infinity,
@@ -305,83 +321,65 @@ class _HomePageState extends State<MyHomePage> {
                                   ]))))
                     ]));
               })),
-    ]));
+
+      // TextButton(
+      //   onPressed: () async {
+      //     try {
+      //       final user = await loginWithGoogle();
+      //       if (user != null) {
+      //         print(user);
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (context) => const LoginPage()),
+      //         );
+      //       }
+      //     } on FirebaseAuthException catch (e) {
+      //       print(e);
+      //     } catch (e) {
+      //       print(e.toString() + "fasd");
+      //     }
+      //   },
+      //   child: const Text('Login'),
+      // ),
+    ])));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            label: 'Business',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Account',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-      ),
-      body: <Widget>[
-        /// Home page
-        _home(),
+  Widget mainPage(theme) {
+    return <Widget>[
+      /// Home page
+      _home(),
 
-        /// Notifications page
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 1'),
-                  subtitle: Text('This is a notification'),
-                ),
+      /// Notifications page
+      const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Column(
+          children: <Widget>[
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.notifications_sharp),
+                title: Text('Notification 1'),
+                subtitle: Text('This is a notification'),
               ),
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 2'),
-                  subtitle: Text('This is a notification'),
-                ),
+            ),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.notifications_sharp),
+                title: Text('Notification 2'),
+                subtitle: Text('This is a notification'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
 
-        /// Messages page
-        ListView.builder(
-          reverse: true,
-          itemCount: 2,
-          itemBuilder: (BuildContext context, int index) {
-            if (index == 0) {
-              return Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  margin: const EdgeInsets.all(8.0),
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Text(
-                    'Hello',
-                    style: theme.textTheme.bodyLarge!
-                        .copyWith(color: theme.colorScheme.onPrimary),
-                  ),
-                ),
-              );
-            }
+      /// Messages page
+      ListView.builder(
+        reverse: true,
+        itemCount: 2,
+        itemBuilder: (BuildContext context, int index) {
+          if (index == 0) {
             return Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerRight,
               child: Container(
                 margin: const EdgeInsets.all(8.0),
                 padding: const EdgeInsets.all(8.0),
@@ -390,16 +388,50 @@ class _HomePageState extends State<MyHomePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Text(
-                  'Hi!',
+                  'Hello',
                   style: theme.textTheme.bodyLarge!
                       .copyWith(color: theme.colorScheme.onPrimary),
                 ),
               ),
             );
-          },
-        ),
-      ][_selectedIndex],
-    );
+          }
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              margin: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Text(
+                'Hi!',
+                style: theme.textTheme.bodyLarge!
+                    .copyWith(color: theme.colorScheme.onPrimary),
+              ),
+            ),
+          );
+        },
+      ),
+    ][_selectedIndex];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: ((context, snapshot) {
+          print(snapshot);
+          if (ConnectionState.waiting == snapshot.connectionState) {
+            return CircularProgressIndicator.adaptive();
+          }
+          if (snapshot.hasData) {
+            return HomePage();
+          } else {
+            return LoginPage();
+          }
+        }));
   }
 }
 
