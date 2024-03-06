@@ -119,3 +119,22 @@ Future<User?> loginWithPassword(email, password) async {
   }
   return null;
 }
+
+Future<Map<String, dynamic>> findUserByUsername(String username) async {
+  var client = HttpClient();
+  String baseUrl = dotenv.env["API_URL"]!;
+  String userPath = dotenv.env["USER_API_PATH"]!;
+  // print(user.toString() + ': user');
+
+  try {
+    Response response =
+        await get(Uri.parse('$baseUrl/$userPath/find/$username'),
+            // body: jsonEncode(username),
+            headers: {"Content-Type": "application/json"});
+    print(response.body.toString() + "reponse");
+    return response.body as Map<String, dynamic>;
+    // return jsonDecode(response.body) as Map<String, dynamic>;
+  } finally {
+    client.close();
+  }
+}

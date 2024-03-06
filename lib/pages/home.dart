@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/api/groupAPI.dart';
+import 'package:test_app/api/userAPI.dart';
 import 'package:test_app/pages/group.dart';
 
 class AddUserDialog extends StatefulWidget {
@@ -10,9 +11,9 @@ class AddUserDialog extends StatefulWidget {
 }
 
 class _AddUserDialogState extends State<AddUserDialog> {
-  List<bool> isSelected = [false, false];
-  List<String> options = ['Option 1', 'Option 2'];
-
+  List<bool> isSelected = [true, false];
+  List<String> options = ['User', 'Guest'];
+  final TextEditingController userController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -26,30 +27,17 @@ class _AddUserDialogState extends State<AddUserDialog> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Group Name',
-                    border: OutlineInputBorder(),
-                    hintText: 'Enter a group name',
-                    isDense: true,
-                    contentPadding: EdgeInsets.all(10),
-                  ),
-                ),
-                const Text('This is a typical dialog.'),
                 const SizedBox(height: 15),
-                Text(
-                  'Select One Option:',
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                ),
                 Row(children: [
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   ToggleButtons(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                     children: options
                         .map((option) => Container(
                             width: (MediaQuery.of(context).size.width - 83) / 2,
                             child: Padding(
-                                padding: EdgeInsets.all(10),
+                                padding: EdgeInsets.zero,
+                                // padding: EdgeInsets.all(5),
                                 child: Center(
                                     child: Text(
                                   option,
@@ -68,12 +56,53 @@ class _AddUserDialogState extends State<AddUserDialog> {
                     },
                   ),
                 ]),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Close'),
+                Padding(padding: EdgeInsets.only(bottom: 10)),
+                TextField(
+                  controller: userController,
+                  decoration: InputDecoration(
+                    labelText: 'UserName',
+                    border: OutlineInputBorder(),
+                    hintText:
+                        isSelected[1] ? 'Enter guest name' : "Enter username",
+                    isDense: true,
+                    contentPadding: EdgeInsets.all(10),
+                  ),
                 ),
+                Row(
+                  children: [
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () async {
+                        Map<String, String> user = <String, String>{};
+                        if (isSelected[0]) {
+                          final response =
+                              await findUserByUsername(userController.text);
+                          if (response["user"] == null) {
+                            // Show error message
+                          } else {
+                            user["type"] = "user";
+                            user["name"] = userController.text;
+                            user["id"] = response["user"]["id"];
+                          }
+                          // check user exist
+                        } else {
+                          user["type"] = "guest";
+                          user["name"] = userController.text;
+                        }
+                        Navigator.pop(context, user);
+                      },
+                      child: const Text('Add'),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Close'),
+                    ),
+                    const Spacer(),
+                  ],
+                )
               ],
             ),
           ),
@@ -159,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const Text('This is a typical dialog.'),
                   const SizedBox(height: 15),
-                  Text(
+                  const Text(
                     'Select One Option:',
                     style:
                         TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
@@ -207,33 +236,33 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          width: MediaQuery.of(context).size.width,
-          height: 800,
-          color: Colors.white,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  leading: TextButton(
-                    onPressed: () => {
-                      // createGroup
-                    },
-                    child: const Text('Save'),
+            width: MediaQuery.of(context).size.width,
+            height: 800,
+            color: Colors.white,
+            alignment: Alignment.topCenter,
+            child: Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                  ListTile(
+                    leading: TextButton(
+                      onPressed: () => {
+                        // createGroup
+                      },
+                      child: const Text('Save'),
+                    ),
+                    title: const Center(child: Text("My Title")),
+                    minLeadingWidth: 60,
+                    contentPadding: EdgeInsets.zero,
+                    trailing: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
                   ),
-                  title: Center(child: Text("My Title")),
-                  minLeadingWidth: 60,
-                  contentPadding: EdgeInsets.zero,
-                  trailing: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Column(
-                    children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
+                    child: Column(children: [
                       const TextField(
                         decoration: InputDecoration(
                           labelText: 'Group Name',
@@ -241,47 +270,107 @@ class _HomePageState extends State<HomePage> {
                           hintText: 'Enter a group name',
                         ),
                       ),
-                      // new List.generate(totalNewUser, (index) => )
-                      Container(
-                        // color: Colors.blue,
-                        height: 100,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            const Expanded(
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  labelText: 'User 1',
-                                  border: OutlineInputBorder(),
-                                  hintText: 'Enter user email or guest name',
-                                ),
-                              ),
-                            ),
-                            Container(
-                              width: 50,
-                              height: 50,
-                              child: IconButton(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AddUserDialog();
-                                      },
-                                    );
-                                  },
-                                  icon: Icon(Icons.add)),
-                            )
+                      Card(
+                          child: Column(
+                        children: [
+                          ListTile(title: Text('One-line ListTile')),
+                          const Text("Member List"),
+                          // const Spacer(),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                textStyle: const TextStyle(fontSize: 20)),
+                            onPressed: () async {
+                              final a = await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AddUserDialog();
+                                },
+                              );
+                              print(a.toString());
+                            },
+                            child: Row(children: [
+                              const Spacer(),
+                              Text('Add'),
+                              Icon(Icons.add),
+                              const Spacer()
+                            ]),
+                          ),
+                        ],
+                      )),
+                    ]),
+                    // margin: const EdgeInsets.all(15.0),
+                    // padding: const EdgeInsets.all(3.0),
+                    // decoration: BoxDecoration(
+                    //     border: Border.all(color: Colors.grey)),
+                    // child:
+                    // Center(
+                    // child: Row(
+                    //     // mainAxisAlignment: MainAxisAlignment.center,
+                    //     // mainAxisSize: MainAxisSize.min,
+                    //     children: [
+                    //       Column(
+                    //         children: [
+                    //   const Text("Member List"),
+                    //   const Spacer(),
+                    //   ElevatedButton(
+                    //     style: ElevatedButton.styleFrom(
+                    //         textStyle:
+                    //             const TextStyle(fontSize: 20)),
+                    //     onPressed: () async {
+                    //       final a = await showDialog(
+                    //         context: context,
+                    //         builder: (BuildContext context) {
+                    //           return AddUserDialog();
+                    //         },
+                    //       );
+                    //       print(a.toString());
+                    //     },
+                    //     child: Row(children: [
+                    //       const Spacer(),
+                    //       Text('Add'),
+                    //       Icon(Icons.add),
+                    //       const Spacer()
+                    //     ]),
+                    //   ),
+                    // ],
+                    //       ),
+                    //       const Text("dataaaa")
+                    //     ]),
 
-                            // Container(width: 50, height: 50, color: Colors.red),
-                            // Container(
-                            //     width: 50, height: 50, color: Colors.green),
-                            // Container(
-                            //     width: 50, height: 50, color: Colors.yellow),
-                          ],
-                        ),
-                      ),
-                      // Other widgets...
-                    ],
+                    // new List.generate(totalNewUser, (index) => )
+                    // Container(
+                    //   // color: Colors.blue,
+                    //   height: 100,
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //     children: [
+                    //       const Expanded(
+                    //         child: TextField(
+                    //           decoration: InputDecoration(
+                    //             labelText: 'User 1',
+                    //             border: OutlineInputBorder(),
+                    //             hintText: 'Enter user email or guest name',
+                    //           ),
+                    //         ),
+                    //       ),
+
+                    //             // child: IconButton(
+
+                    //     icon: const Icon(Icons.add)),
+
+                    // Container(width: 50, height: 50, color: Colors.red),
+                    // Container(
+                    //     width: 50, height: 50, color: Colors.green),
+                    // Container(
+                    //     width: 50, height: 50, color: Colors.yellow),
+
+                    // const Spacer(),
+                    // ElevatedButton(
+                    //   child: const Text('Close BottomSheet'),
+                    //   onPressed: () => Navigator.pop(context),
+                    // ),
+                    // Other widgets...
+
                     // children: [
                     //   Container(
                     //     height: 100,
@@ -293,16 +382,10 @@ class _HomePageState extends State<HomePage> {
                     //   ),
                     // ],
                   ),
-                ),
-                Spacer(),
-                ElevatedButton(
-                  child: const Text('Close BottomSheet'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-        );
+                  Spacer(),
+                ])));
+        //   ),
+        // );
       });
 
   Widget _home() {
